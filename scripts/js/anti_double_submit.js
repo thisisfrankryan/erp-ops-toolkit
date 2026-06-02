@@ -47,4 +47,10 @@ function bindSubmitProtection(buttonSelector, submitHandler, options = {}) {
 }
 
 // Browser global export for legacy ERP pages.
-window.bindSubmitProtection = bindSubmitProtection;
+if (typeof window !== "undefined") {
+  window.bindSubmitProtection = bindSubmitProtection;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { bindSubmitProtection };
+}

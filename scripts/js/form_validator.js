@@ -59,4 +59,14 @@ function validateErpForm(formData) {
 // });
 // if (!result.valid) alert(result.errors.join("\n"));
 
-window.validateErpForm = validateErpForm;
+if (typeof window !== "undefined") {
+  window.validateErpForm = validateErpForm;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    validateRequired,
+    validatePositiveNumber,
+    validateErpForm
+  };
+}
