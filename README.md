@@ -1,6 +1,6 @@
 # ERP Ops Toolkit
 
-ERP 实施、运维与技术支持常用脚本工具箱。项目用于沉淀企业 ERP / 进销存 / B/S 管理系统中常见的前端误操作拦截、表单校验、动态表单控制、财务字段处理、数据库状态修正、权限复制、库存异常、主数据清洗、死锁诊断和批量政策更新等实践模板。
+ERP 实施、运维与技术支持常用脚本工具箱。项目用于沉淀企业 ERP / 进销存 / B/S 管理系统中常见的前端误操作拦截、表单校验、动态表单控制、财务字段处理、数据库状态修正、权限与数据范围、库存异常、主数据清洗、死锁诊断、接口重试、附件审计和批量政策更新等实践模板。
 
 > 说明：本仓库中的脚本均为学习与演示模板，不应在生产环境中直接复制执行。涉及数据库写操作时，必须先备份、先查询确认、再在测试环境验证，最后由有权限人员按变更流程执行。
 
@@ -26,21 +26,32 @@ erp-ops-toolkit/
 ├── README.md
 ├── docs/
 │   ├── AGENT_BUILD_INSTRUCTION.md
+│   ├── INTERVIEW_SCENARIOS.md
 │   └── RUNBOOK.md
 ├── scripts/
 │   ├── js/
 │   │   ├── anti_double_submit.js
+│   │   ├── app_error_recorder.js
 │   │   ├── currency_to_words.js
+│   │   ├── dependent_select_reset.js
 │   │   ├── dynamic_form_control.js
 │   │   ├── form_validator.js
-│   │   └── paste_data_cleaner.js
+│   │   ├── paste_data_cleaner.js
+│   │   └── query_export_guard.js
 │   └── sql/
+│       ├── attachment_orphan_audit.sql
 │       ├── bulk_policy_update.sql
 │       ├── data_deduplication.sql
 │       ├── deadlock_diagnosis.sql
+│       ├── dictionary_option_repair.sql
+│       ├── integration_retry_queue.sql
 │       ├── inventory_adjustment.sql
 │       ├── order_status_correction.sql
-│       └── user_permission_clone.sql
+│       ├── report_query_diagnosis.sql
+│       ├── user_data_scope_audit.sql
+│       ├── user_login_unlock.sql
+│       ├── user_permission_clone.sql
+│       └── user_view_config_reset.sql
 └── .gitignore
 ```
 
@@ -55,6 +66,9 @@ erp-ops-toolkit/
 | `scripts/js/currency_to_words.js` | 财务单据需要数字金额与中文大写金额联动 | 自动生成大写金额，减少人工录入和核对成本 |
 | `scripts/js/paste_data_cleaner.js` | 从 Excel / 网页复制税号、银行账号、发票信息时带入空格、换行或全角字符 | 清洗粘贴数据，降低字段格式错误和长度超限概率 |
 | `scripts/js/dynamic_form_control.js` | 报销类型、项目类型等字段变化后，需要动态显示、隐藏或强制填写其他字段 | 用规则驱动方式控制条件字段，减少错填和漏填 |
+| `scripts/js/app_error_recorder.js` | 页面白屏、按钮无响应、接口报错但客户无法描述细节 | 记录前端异常、接口失败和网络错误，方便服务台账取证 |
+| `scripts/js/query_export_guard.js` | 客户不加条件查询或导出大范围报表，导致页面长时间等待 | 限制日期范围和必要条件，提示分批查询 / 导出 |
+| `scripts/js/dependent_select_reset.js` | 组织、部门、项目、仓库等级联下拉切换后保留旧值 | 父级字段变化时清空子级缓存，避免提交不一致数据 |
 
 ### SQL 模板
 
@@ -66,6 +80,13 @@ erp-ops-toolkit/
 | `scripts/sql/data_deduplication.sql` | 供应商、物料等基础数据初始化阶段出现重复记录 | 预览重复组，备份受影响数据，用失效标记替代直接删除 |
 | `scripts/sql/deadlock_diagnosis.sql` | 财务月结、成本核算或报表任务出现阻塞，页面长时间转圈 | 查询阻塞链、长事务、锁信息和死锁图，辅助判断处理范围 |
 | `scripts/sql/bulk_policy_update.sql` | 税率、报销规则或业务政策变化，需要批量更新未结案单据 | 先预览范围并备份，再用事务批量更新和复核 |
+| `scripts/sql/user_login_unlock.sql` | 用户因多次输错密码或误锁定导致无法登录 | 先确认账号状态，备份后只重置锁定相关字段 |
+| `scripts/sql/user_data_scope_audit.sql` | 用户能进菜单但看不到项目、部门或业务数据 | 区分菜单权限和数据范围，按同岗位参考用户审计修复 |
+| `scripts/sql/dictionary_option_repair.sql` | 页面下拉框为空、缺少选项或显示错误字典值 | 备份字典后恢复启用或补齐缺失字典项 |
+| `scripts/sql/report_query_diagnosis.sql` | 报表、台账或列表查询慢 | 只读诊断慢 SQL、逻辑读、缺失索引和现有索引 |
+| `scripts/sql/attachment_orphan_audit.sql` | 附件上传后看不到、附件串单或存在孤儿附件 | 审计附件元数据和业务单据关系，备份后逻辑标记 |
+| `scripts/sql/integration_retry_queue.sql` | OA、移动审批或第三方接口回调失败 | 只重试临时失败且未超次数的消息，避免重复回调 |
+| `scripts/sql/user_view_config_reset.sql` | 单个用户列表字段消失、页面布局异常 | 备份并失效个人视图配置，恢复系统默认页面 |
 
 ## 高频场景映射
 
@@ -81,6 +102,16 @@ erp-ops-toolkit/
 | 8. 主数据重复污染 | 供应商、物料基础数据导入前未清洗 | `scripts/sql/data_deduplication.sql` |
 | 9. 财务月结阻塞 / 死锁 | 报表或凭证生成进程互相等待，页面持续转圈 | `scripts/sql/deadlock_diagnosis.sql` |
 | 10. 政策变化批量改写 | 税率、项目有效期等规则变化，需要批量处理存量单据 | `scripts/sql/bulk_policy_update.sql` |
+| 11. 页面白屏 / 按钮无响应 | 客户无法描述报错细节，只说页面打不开 | `scripts/js/app_error_recorder.js` |
+| 12. 大范围查询 / 导出拖慢系统 | 报表不加组织、项目或日期条件，导致长时间等待 | `scripts/js/query_export_guard.js` |
+| 13. 级联下拉旧值残留 | 切换组织后项目、仓库仍保留旧选项 | `scripts/js/dependent_select_reset.js` |
+| 14. 账号被锁 / 登录失败 | 用户多次输错密码或账号误锁定 | `scripts/sql/user_login_unlock.sql` |
+| 15. 有菜单但看不到数据 | 菜单权限正常，组织 / 项目数据范围缺失 | `scripts/sql/user_data_scope_audit.sql` |
+| 16. 下拉字典为空 / 错误 | 字典项停用、漏配或显示名称错误 | `scripts/sql/dictionary_option_repair.sql` |
+| 17. 报表 / 列表查询慢 | 成本报表、库存台账、报销列表响应慢 | `scripts/sql/report_query_diagnosis.sql` |
+| 18. 附件看不到 / 串单 | 附件元数据和业务单据关联异常 | `scripts/sql/attachment_orphan_audit.sql` |
+| 19. 接口回调失败 | OA / 移动审批已操作但 ERP 未同步 | `scripts/sql/integration_retry_queue.sql` |
+| 20. 个人页面配置异常 | 单个用户列表字段消失或查询条件错乱 | `scripts/sql/user_view_config_reset.sql` |
 
 ## 安全原则
 
@@ -104,9 +135,9 @@ erp-ops-toolkit/
 ## 能体现的工程能力
 
 - JavaScript 基础、DOM 操作、表单校验、重复提交保护、粘贴事件处理、动态表单控制。
-- 财务金额处理、税号 / 银行账号字段清洗、前端输入规范化。
-- SQL Server / 关系型数据库基础、事务、备份、影响行数核对、阻塞链排查。
-- ERP 业务理解：采购单、审批流、库存、出入库、财务对账、权限配置、主数据初始化、月结和政策更新。
+- 财务金额处理、税号 / 银行账号字段清洗、前端输入规范化、前端异常取证。
+- SQL Server / 关系型数据库基础、事务、备份、影响行数核对、阻塞链排查、慢查询诊断。
+- ERP 业务理解：采购单、审批流、库存、出入库、财务对账、权限配置、数据范围、字典配置、接口回调、附件管理、主数据初始化、月结和政策更新。
 - 运维实施意识：先备份、可回滚、可复核、可交接。
 - 文档沉淀能力：把脚本、业务场景、风险和处理流程写清楚。
 
