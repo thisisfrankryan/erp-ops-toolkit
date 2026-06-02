@@ -8,7 +8,7 @@
 
 - JavaScript 前端误操作拦截能力。
 - SQL Server 数据修正安全意识。
-- ERP 业务理解，包括审批流、采购单、库存、出入库、财务对账、用户权限、主数据初始化。
+- ERP 业务理解，包括审批流、采购单、库存、出入库、财务对账、用户权限、主数据初始化、月结阻塞、批量政策更新。
 - 运维交付意识，包括备份、事务、回滚、影响行数核对、服务台账。
 - 文档沉淀能力。
 
@@ -29,10 +29,13 @@ scripts/js/anti_double_submit.js
 scripts/js/form_validator.js
 scripts/js/currency_to_words.js
 scripts/js/paste_data_cleaner.js
+scripts/js/dynamic_form_control.js
 scripts/sql/order_status_correction.sql
 scripts/sql/inventory_adjustment.sql
 scripts/sql/user_permission_clone.sql
 scripts/sql/data_deduplication.sql
+scripts/sql/deadlock_diagnosis.sql
+scripts/sql/bulk_policy_update.sql
 ```
 
 ## README 要求
@@ -55,6 +58,7 @@ JavaScript：
 - 保留示例用法。
 - 注释解释业务场景和技术动作。
 - 财务大写金额和粘贴数据清洗要提供真实可复用逻辑，不要只返回固定示例。
+- 动态表单控制要用规则方式封装，避免只写死某一个页面。
 
 SQL：
 
@@ -66,6 +70,8 @@ SQL：
 - 必须检查 `@@ROWCOUNT`。
 - 影响行数符合预期才 COMMIT，否则 ROLLBACK。
 - 主数据去重场景禁止直接 DELETE，优先使用失效标记并保留可追溯字段。
+- 死锁处理脚本默认只诊断，不默认执行 `KILL`。
+- 批量政策更新必须先预览影响范围、备份受影响数据，再事务更新。
 
 ## Git 要求
 
