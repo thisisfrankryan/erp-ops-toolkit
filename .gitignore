@@ -1,0 +1,23 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Runtime / temp
+*.log
+*.tmp
+*.bak
+*.backup
+backup_*/
+
+# Database exports
+*.dump
+*.sql.bak
+*.csv
+*.xlsx
+
+# Secrets
+.env
+*.key
+*.pem
